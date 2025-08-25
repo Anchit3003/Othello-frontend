@@ -1,0 +1,46 @@
+.home-container {
+  display: flex;
+  flex-direction: row; /* Keeps items in a row (default is left to right) */
+  height: 100vh;
+  width: 100vw;
+  background: #1a1a1a;
+  overflow: hidden;
+}
+
+.game-area {
+  flex: 1; /* This makes the game-area take up the remaining space */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.side-nav {
+  width: 300px; /* Fixed sidebar width */
+  background: #2e2e2e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border-right: 2px solid #444; /* Changed from border-left to border-right */
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.side-nav h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: white;
+  font-family: sans-serif;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between logo and text */
+}
+
+.logo {
+  width: 40px;  /* Adjust size as needed */
+  height: 40px;
+  object-fit: contain;
+}

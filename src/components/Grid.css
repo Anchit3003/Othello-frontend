@@ -1,0 +1,7 @@
+.othello-canvas {
+  background: #0f5132; /* fallback if not imported from constants */
+  display: block;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
