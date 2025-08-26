@@ -6,6 +6,7 @@ import {
   BOARD_COLOR,
   GRID_COLOR,
 } from "../constants/gameConstants";
+import { drawDisc } from "./Disc";
 
 import "./Grid.css";
 const Grid = () => {
@@ -33,6 +34,11 @@ const Grid = () => {
       ctx.lineTo(CANVAS_SIZE, pos);
       ctx.stroke();
     }
+    drawDisc(ctx, 3, 3, "white", CELL_SIZE);
+    drawDisc(ctx, 3, 4, "black", CELL_SIZE);
+    drawDisc(ctx, 4, 3, "black", CELL_SIZE);
+    drawDisc(ctx, 4, 4, "white", CELL_SIZE);
+
   }, []);
   return (
     <canvas
