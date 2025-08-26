@@ -1,6 +1,7 @@
 import React from "react";
 import Grid from "../components/Grid";
 import "./Home.css";
+import OthelloMain from "../components/OthelloMain";
 import othellooo from "../assets/othellooo.png";
 export default function Home() {
   return (
@@ -14,7 +15,8 @@ export default function Home() {
 
       </aside>
       <div className="game-area">
-        <Grid />
+        {/* <Grid /> */}
+        <OthelloMain />
       </div>
     </div>
   );
