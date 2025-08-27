@@ -7,7 +7,7 @@ import {
   GRID_COLOR,
 } from "../constants/gameConstants";
 import { drawDisc } from "./Disc";
-
+import WinnerPopup from "./WinnerPopup";
 import "./Grid.css";
 
 const directions = [
@@ -35,6 +35,10 @@ const Grid = () => {
 
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [validMoves, setValidMoves] = useState([]);
+   const [score, setScore] = useState({ black: 2, white: 2 });
+   const [gameOver, setGameOver] = useState(false);
+const [winner, setWinner] = useState(null);
+
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     let animationFrameId;
@@ -45,8 +49,11 @@ const Grid = () => {
       drawPieces(ctx);
 
       // Smooth sine wave alpha for pulse effect
-      const alpha = (Math.sin(t) + 1) / 2; // oscillates between 0 and 1
+      if(!gameOver){
+        const alpha = (Math.sin(t) + 1) / 2; // oscillates between 0 and 1
       highlightMoves(ctx, alpha);
+      } 
+      
 
       t += 0.05; // speed of pulse
       animationFrameId = requestAnimationFrame(animate);
@@ -54,12 +61,30 @@ const Grid = () => {
 
     animate();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [board, validMoves]);
+  }, [board, validMoves, gameOver]);
 
   useEffect(() => {
+    if (gameOver) return;
     const moves = getValidMoves(board, currentPlayer);
-    setValidMoves(moves);
-  }, [board, currentPlayer]);
+    if (moves.length === 0) {
+      const otherPlayer = currentPlayer === 1 ? 2 : 1;
+      const otherMoves = getValidMoves(board, otherPlayer);
+
+      if (otherMoves.length > 0) {
+        setCurrentPlayer(otherPlayer);
+        setValidMoves(otherMoves);
+      } else {
+       setGameOver(true);
+      if (score.black > score.white) setWinner("Black");
+      else if (score.white > score.black) setWinner("White");
+      else setWinner("Draw");
+      }
+    } else {
+      setValidMoves(moves);
+    }
+
+    updateScore(board);
+  }, [board, currentPlayer, gameOver]);
 
   const drawBoard = (ctx) => {
     ctx.fillStyle = BOARD_COLOR;
@@ -80,6 +105,17 @@ const Grid = () => {
       ctx.lineTo(CANVAS_SIZE, pos);
       ctx.stroke();
     }
+  };
+
+  const updateScore = (board) => {
+    let black = 0, white = 0;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c] === 1) black++;
+        if (board[r][c] === 2) white++;
+      }
+    }
+    setScore({ black, white });
   };
 
   const drawPieces = (ctx) => {
@@ -106,6 +142,67 @@ const Grid = () => {
       ctx.arc(x, y, CELL_SIZE / 8, 0, Math.PI * 2);
       ctx.fill();
     });
+  };
+
+const handleClick = (e) => {
+   if (gameOver) return;
+  const rect = canvasRef.current.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const row = Math.floor(y / CELL_SIZE);
+  const col = Math.floor(x / CELL_SIZE);
+
+  if (!validMoves.some(([r, c]) => r === row && c === col)) return;
+
+  const newBoard = board.map(rowArr => [...rowArr]);
+  newBoard[row][col] = currentPlayer;
+
+  flipDiscs(newBoard, row, col, currentPlayer);
+
+  let nextPlayer = currentPlayer === 1 ? 2 : 1;
+
+  const nextValidMoves = getValidMoves(newBoard, nextPlayer);
+
+  if (nextValidMoves.length === 0) {
+
+    nextPlayer = currentPlayer;
+
+    const currentValidMoves = getValidMoves(newBoard, currentPlayer);
+    if (currentValidMoves.length === 0) {
+      setGameOver(true);
+      if (score.black > score.white) setWinner("Black");
+      else if (score.white > score.black) setWinner("White");
+      else setWinner("Draw");
+    }
+  }
+
+  setBoard(newBoard);
+  setCurrentPlayer(nextPlayer);
+};
+
+
+  const flipDiscs = (newBoard, row, col, player) => {
+    const opponent = player === 1 ? 2 : 1;
+
+    directions.forEach(([dr, dc])=>{
+      let r =  row + dr, c = col+dc;
+      const discsToFlip = [];
+
+      while (r >= 0 && r< BOARD_SIZE && c >= 0  && c< BOARD_SIZE){
+        if (newBoard[r][c] === opponent){
+          discsToFlip.push ([r, c]);
+          r += dr; c+=dc;
+        }
+        else if (newBoard[r][c] === player){
+          discsToFlip.forEach(([fr, fc]) => newBoard[fr][fc] = player);
+          break;
+        }
+        else{
+          break;
+        }
+      }
+    })
   };
 
   const getValidMoves = (board, player) => {
@@ -141,12 +238,38 @@ const Grid = () => {
     return moves;
   };
   return (
-    <canvas
-      ref={canvasRef}
-      width={CANVAS_SIZE}
-      height={CANVAS_SIZE}
-      className="othello-canvas"
-    />
+    <div className="othello-container">
+      <p>Current Player: <strong>{currentPlayer === 1 ? "Black" : "White"}</strong></p>
+      <p>Score - Black: {score.black} | White: {score.white}</p>
+      <canvas
+        ref={canvasRef}
+        width={CANVAS_SIZE}
+        height={CANVAS_SIZE}
+        className="othello-canvas"
+        onClick={handleClick}
+      />
+      {gameOver && (
+      <WinnerPopup
+        winner={winner}
+        score={score}
+        onRestart={() => {
+          // Reset game without refresh
+          const initial = Array(BOARD_SIZE)
+            .fill(null)
+            .map(() => Array(BOARD_SIZE).fill(0));
+          initial[3][3] = 2;
+          initial[3][4] = 1;
+          initial[4][3] = 1;
+          initial[4][4] = 2;
+          setBoard(initial);
+          setCurrentPlayer(1);
+          setScore({ black: 2, white: 2 });
+          setGameOver(false);
+          setWinner(null);
+        }}
+      />
+    )}
+    </div>
   );
 };
 

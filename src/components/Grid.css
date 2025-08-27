@@ -1,7 +1,10 @@
+.othello-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
 .othello-canvas {
-  background: #0f5132; /* fallback if not imported from constants */
+  border: 2px solid black;
   display: block;
-  margin: 20px auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
+  margin: 0 auto;
 }
