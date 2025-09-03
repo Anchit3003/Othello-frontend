@@ -44,3 +44,31 @@
   height: 40px;
   object-fit: contain;
 }
+.sidebar-login {
+  margin-top: auto; /* This pushes the login to the bottom */
+  padding: 20px 0; /* Add some padding around the login */
+}
+
+.sidebar-buttons {
+ display: flex;
+  flex-direction: column;
+  align-items: center;
+   gap: 15px; 
+}
+.sidebar-buttons button {
+  width: 200px;         /* Make it big horizontally */
+  height: 60px;         /* Make it tall */
+  font-size: 18px;      /* Bigger text */
+  font-weight: bold;    /* Make text stand out */
+  background-color: #8B5CF6; /* Blue-ish color */
+  color: white;         /* White text */
+  border: none;         /* Remove default border */
+  border-radius: 10px;  /* Rounded corners */
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.sidebar-buttons button:hover {
+  background-color: #7C3AED; /* Darker blue on hover */
+  transform: scale(1.05);    /* Slight zoom effect */
+}
