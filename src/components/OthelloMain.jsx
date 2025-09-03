@@ -20,7 +20,7 @@ const directions = [
   [1, 0],
   [1, 1],
 ];
-const Grid = () => {
+const OthelloMain = () => {
   const canvasRef = useRef(null);
   const [board, setBoard] = useState(() => {
     const initial = Array(BOARD_SIZE)
@@ -273,4 +273,4 @@ const handleClick = (e) => {
   );
 };
 
-export default Grid;
+export default OthelloMain;
