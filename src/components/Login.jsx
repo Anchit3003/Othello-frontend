@@ -1,6 +1,6 @@
-import React,{useState} from 'react'
+import React,{useEffect, useState} from 'react'
 import "./Login.css"
-import { loginUser } from '../features/auth/authSlice'
+import { loginUser,clearError } from '../features/auth/authSlice'
 import { useDispatch, useSelector } from 'react-redux';
 
 const Login = ({onClose,isOpen}) => {
@@ -20,14 +20,16 @@ const Login = ({onClose,isOpen}) => {
     }
     const onSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await dispatch(loginUser(formData)).unwrap();
-      onClose(); // ✅ Close only on success
-    } catch (err) {
-      console.error('Login failed:', err);
-      // ✅ Stay open on error
-    }
+      dispatch(loginUser(formData))
   };
+
+  useEffect(()=>{
+   if(isOpen){
+     setFormData({email:'', password:''})
+     dispatch(clearError())
+   }
+
+  },[isOpen])
 
     if (!isOpen) return null;
   return (
@@ -62,6 +64,9 @@ const Login = ({onClose,isOpen}) => {
               placeholder="Enter your password"
               required
             />
+             {error && (
+              <span className="error-message">{error}</span>
+            )}
           </div>
          
           <div className="form-actions">

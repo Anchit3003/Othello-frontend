@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   BOARD_SIZE,
-  CANVAS_SIZE,
-  CELL_SIZE,
   BOARD_COLOR,
   GRID_COLOR,
 } from "../constants/gameConstants";
@@ -12,18 +10,15 @@ import { getSocket } from "../socket";
 import "./Grid.css";
 
 const directions = [
-  [-1, -1],
-  [-1, 0],
-  [-1, 1],
-  [0, -1],
-  [0, 1],
-  [1, -1],
-  [1, 0],
-  [1, 1],
+  [-1, -1], [-1, 0], [-1, 1],
+  [0, -1],          [0, 1],
+  [1, -1],  [1, 0], [1, 1],
 ];
 
-const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
+const Grid = ({ roomId, playerNumber, isMultiplayer = false, onGameEnd, onScoreUpdate }) => {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [canvasSize, setCanvasSize] = useState(400); // Default size
   const [board, setBoard] = useState(() => {
     const initial = Array(BOARD_SIZE)
       .fill(null)
@@ -42,6 +37,22 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
   const [winner, setWinner] = useState(null);
   const [isMyTurn, setIsMyTurn] = useState(false);
 
+  // Responsive canvas size
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const size = Math.min(
+          containerRef.current.offsetWidth,
+          window.innerHeight * 0.8
+        );
+        setCanvasSize(size);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (isMultiplayer) {
       setIsMyTurn(currentPlayer === playerNumber);
@@ -51,33 +62,33 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
   }, [currentPlayer, playerNumber, isMultiplayer]);
 
   useEffect(() => {
+    if (gameOver && winner && onGameEnd) {
+      const finalScore = calculateScore(board);
+      onGameEnd({
+        winner: winner === "Draw" ? "Draw" : `${winner} Wins!`,
+        reason: "Game completed",
+        score: finalScore,
+      });
+    }
+    // eslint-disable-next-line
+  }, [gameOver, winner]);
+
+  useEffect(() => {
     if (isMultiplayer) {
       const socket = getSocket();
-      
-      console.log('🔗 Setting up socket listeners for multiplayer...');
-
       const handleMoveReceived = (data) => {
-        console.log('📨 Move received:', data);
         if (data.playerId !== socket.id) {
-          console.log('🔄 Updating board from opponent move');
           setBoard(data.board);
           setCurrentPlayer(data.currentPlayer);
-        } else {
-          console.log('👤 This was my own move, ignoring');
         }
       };
-
       const handleGameEnded = (data) => {
-        console.log('🏁 Game ended:', data);
         setGameOver(true);
         setWinner(data.winner);
       };
-
       socket.on('move_made', handleMoveReceived);
       socket.on('game_ended', handleGameEnded);
-
       return () => {
-        console.log('🧹 Cleaning up socket listeners');
         socket.off('move_made', handleMoveReceived);
         socket.off('game_ended', handleGameEnded);
       }
@@ -88,15 +99,15 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
     const ctx = canvasRef.current.getContext("2d");
     let animationFrameId;
     let t = 0;
+    const cellSize = canvasSize / BOARD_SIZE;
 
     const animate = () => {
-      drawBoard(ctx);
-      drawPieces(ctx);
+      drawBoard(ctx, canvasSize, cellSize);
+      drawPieces(ctx, cellSize);
 
-      // Only show valid moves if it's the player's turn
       if (!gameOver && isMyTurn) {
         const alpha = (Math.sin(t) + 1) / 2;
-        highlightMoves(ctx, alpha);
+        highlightMoves(ctx, cellSize, alpha);
       }
 
       t += 0.05;
@@ -105,7 +116,7 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
 
     animate();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [board, validMoves, gameOver, isMyTurn]);
+  }, [board, validMoves, gameOver, isMyTurn, canvasSize]);
 
   useEffect(() => {
     if (gameOver) return;
@@ -125,7 +136,7 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
         else if (finalScore.white > finalScore.black) gameWinner = "White";
         else gameWinner = "Draw";
         setWinner(gameWinner);
-        
+
         if (isMultiplayer) {
           const socket = getSocket();
           socket.emit('game_over', {
@@ -153,23 +164,24 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
     return { black, white };
   };
 
-  const drawBoard = (ctx) => {
+  const drawBoard = (ctx, size, cellSize) => {
+    ctx.clearRect(0, 0, size, size);
     ctx.fillStyle = BOARD_COLOR;
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.fillRect(0, 0, size, size);
 
     ctx.strokeStyle = GRID_COLOR;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
 
     for (let i = 0; i <= BOARD_SIZE; i++) {
-      const pos = i * CELL_SIZE;
+      const pos = i * cellSize;
       ctx.beginPath();
       ctx.moveTo(pos, 0);
-      ctx.lineTo(pos, CANVAS_SIZE);
+      ctx.lineTo(pos, size);
       ctx.stroke();
 
       ctx.beginPath();
       ctx.moveTo(0, pos);
-      ctx.lineTo(CANVAS_SIZE, pos);
+      ctx.lineTo(size, pos);
       ctx.stroke();
     }
   };
@@ -177,49 +189,46 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
   const updateScore = (board) => {
     const newScore = calculateScore(board);
     setScore(newScore);
+    onScoreUpdate(newScore);
   };
 
-  const drawPieces = (ctx) => {
+  const drawPieces = (ctx, cellSize) => {
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
         if (board[r][c] === 1) {
-          drawDisc(ctx, r, c, "black", CELL_SIZE);
+          drawDisc(ctx, r, c, "black", cellSize);
         }
         if (board[r][c] === 2) {
-          drawDisc(ctx, r, c, "white", CELL_SIZE);
+          drawDisc(ctx, r, c, "white", cellSize);
         }
       }
     }
   };
 
-  const highlightMoves = (ctx, alpha) => {
+  const highlightMoves = (ctx, cellSize, alpha) => {
     const baseAlpha = 0.5;
     const variation = 0.5;
     ctx.fillStyle = `rgba(128, 128, 128, ${baseAlpha + alpha * variation})`;
     validMoves.forEach(([r, c]) => {
-      const x = c * CELL_SIZE + CELL_SIZE / 2;
-      const y = r * CELL_SIZE + CELL_SIZE / 2;
+      const x = c * cellSize + cellSize / 2;
+      const y = r * cellSize + cellSize / 2;
       ctx.beginPath();
-      ctx.arc(x, y, CELL_SIZE / 8, 0, Math.PI * 2);
+      ctx.arc(x, y, cellSize / 8, 0, Math.PI * 2);
       ctx.fill();
     });
   };
 
   const handleClick = (e) => {
     if (gameOver) return;
-    
-    // CRITICAL: Prevent moves when it's not the player's turn in multiplayer
-    if (isMultiplayer && !isMyTurn) {
-      console.log('Not your turn! Current player:', currentPlayer, 'Your number:', playerNumber);
-      return;
-    }
+    if (isMultiplayer && !isMyTurn) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
+    const cellSize = canvasSize / BOARD_SIZE;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const row = Math.floor(y / CELL_SIZE);
-    const col = Math.floor(x / CELL_SIZE);
+    const row = Math.floor(y / cellSize);
+    const col = Math.floor(x / cellSize);
 
     if (!validMoves.some(([r, c]) => r === row && c === col)) return;
 
@@ -242,7 +251,7 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
         else if (finalScore.white > finalScore.black) gameWinner = "White";
         else gameWinner = "Draw";
         setWinner(gameWinner);
-        
+
         if (isMultiplayer) {
           const socket = getSocket();
           socket.emit('game_over', {
@@ -258,17 +267,8 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
     setBoard(newBoard);
     setCurrentPlayer(nextPlayer);
 
-    // Send move to server in multiplayer mode
     if (isMultiplayer) {
       const socket = getSocket();
-      console.log('📤 Sending move to server:', {
-        roomId,
-        row,
-        col,
-        currentPlayer: nextPlayer,
-        boardState: newBoard
-      });
-      
       socket.emit('make_move', {
         roomId,
         row,
@@ -281,11 +281,9 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
 
   const flipDiscs = (newBoard, row, col, player) => {
     const opponent = player === 1 ? 2 : 1;
-
     directions.forEach(([dr, dc]) => {
       let r = row + dr, c = col + dc;
       const discsToFlip = [];
-
       while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
         if (newBoard[r][c] === opponent) {
           discsToFlip.push([r, c]);
@@ -304,17 +302,13 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
   const getValidMoves = (board, player) => {
     const opponent = player === 1 ? 2 : 1;
     const moves = [];
-
     for (let r = 0; r < BOARD_SIZE; r++) {
       for (let c = 0; c < BOARD_SIZE; c++) {
         if (board[r][c] !== 0) continue;
-
         let valid = false;
         for (let [dr, dc] of directions) {
-          let nr = r + dr,
-            nc = c + dc;
+          let nr = r + dr, nc = c + dc;
           let foundOpponent = false;
-
           while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
             if (board[nr][nc] === opponent) {
               foundOpponent = true;
@@ -327,7 +321,6 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
           }
           if (valid) break;
         }
-
         if (valid) moves.push([r, c]);
       }
     }
@@ -350,46 +343,20 @@ const Grid = ({ roomId, playerNumber, isMultiplayer = false }) => {
   };
 
   return (
-    <div className="othello-container">
-      <div className="game-status">
-        <p>
-          Current Player: <strong>{currentPlayer === 1 ? "Black ⚫" : "White ⚪"}</strong>
-        </p>
-        {isMultiplayer && (
-          <p>
-            You are: <strong>{playerNumber === 1 ? "Black ⚫" : "White ⚪"}</strong>
-            <span style={{ 
-              color: isMyTurn ? '#28a745' : '#dc3545',
-              fontWeight: 'bold',
-              marginLeft: '10px'
-            }}>
-              {isMyTurn ? '✅ Your Turn' : '⏳ Opponent\'s Turn'}
-            </span>
-          </p>
-        )}
-        <p>Score - Black: {score.black} | White: {score.white}</p>
-      </div>
-      
+    <div className="othello-container" ref={containerRef}>
       <canvas
         ref={canvasRef}
-        width={CANVAS_SIZE}
-        height={CANVAS_SIZE}
+        width={canvasSize}
+        height={canvasSize}
         className={`othello-canvas ${isMultiplayer && !isMyTurn ? 'disabled' : ''}`}
         onClick={handleClick}
         style={{
           cursor: isMultiplayer && !isMyTurn ? 'not-allowed' : 'pointer',
-          opacity: isMultiplayer && !isMyTurn ? 0.7 : 1
+          opacity: isMultiplayer && !isMyTurn ? 0.7 : 1,
+          maxWidth: "100%",
+          height: "auto"
         }}
       />
-      
-      {gameOver && (
-        <WinnerPopup
-          winner={winner}
-          score={score}
-          onRestart={resetGame}
-          isMultiplayer={isMultiplayer}
-        />
-      )}
     </div>
   );
 };

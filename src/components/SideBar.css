@@ -1,0 +1,151 @@
+.side-nav {
+  width: 300px;
+  background-color: #2e2e2e;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.side-nav h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: white;
+  font-family: sans-serif;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between logo and text */
+}
+.logo {
+  width: 40px;  /* Adjust size as needed */
+  height: 40px;
+  object-fit: contain;
+}
+.sidebar-login {
+  margin-top: auto; /* This pushes the login to the bottom */
+  padding: 20px 0; /* Add some padding around the login */
+}
+
+.sidebar-buttons {
+ display: flex;
+  flex-direction: column;
+  align-items: center;
+   gap: 15px; 
+}
+.sidebar-buttons button {
+  width: 200px;         /* Make it big horizontally */
+  height: 60px;         /* Make it tall */
+  font-size: 18px;      /* Bigger text */
+  font-weight: bold;    /* Make text stand out */
+  background-color: #8B5CF6; /* Blue-ish color */
+  color: white;         /* White text */
+  border: none;         /* Remove default border */
+  border-radius: 10px;  /* Rounded corners */
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.sidebar-buttons button:hover {
+  background-color: #7C3AED; /* Darker blue on hover */
+  transform: scale(1.05);    /* Slight zoom effect */
+}
+.game-info-card {
+  background: #2e2e2e;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.game-info-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #ff4757;
+  color: #2e2e2e;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.game-info-card button:hover {
+  background: #ff6b81;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+}
+
+.game-info-card button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 71, 87, 0.2);
+}
+
+.side-nav {
+  width: 300px;
+  background-color: #2e2e2e;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Tablet view - just shrink a bit */
+@media (max-width: 1024px) {
+  .side-nav {
+    width: 240px;
+    padding: 15px;
+  }
+}
+
+/* Mobile view - turn into sliding drawer */
+@media (max-width: 768px) {
+  .side-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 999;
+    width: 240px;
+    padding: 15px;
+    background-color: #2e2e2e;
+  }
+
+  .side-nav.open {
+    transform: translateX(0);
+  }
+
+  .hamburger {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 2000;
+    background: #2e2e2e;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    display: block;
+  }
+}
+
+/* Hide hamburger on larger screens */
+.hamburger {
+  display: none;
+  z-index: 2000;
+}
+@media (max-width: 768px) {
+  .hamburger {
+    display: block; /* <-- THIS IS THE KEY */
+  }
+}
+

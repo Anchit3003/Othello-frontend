@@ -56,7 +56,7 @@ export default function TestMultiplayer() {
     });
 
     socket.on('error', (message) => {
-      alert(`Error: ${message}`);
+      alert(`Error: ${message}`);setConnectionStatus
       console.error('Socket error:', message);
     });
 

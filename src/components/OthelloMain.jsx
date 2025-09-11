@@ -239,8 +239,6 @@ const handleClick = (e) => {
   };
   return (
     <div className="othello-container">
-      <p>Current Player: <strong>{currentPlayer === 1 ? "Black" : "White"}</strong></p>
-      <p>Score - Black: {score.black} | White: {score.white}</p>
       <canvas
         ref={canvasRef}
         width={CANVAS_SIZE}
