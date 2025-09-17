@@ -12,7 +12,7 @@ export const signupUser = createAsyncThunk(
     'auth/SignupUser',
     async(userData, {rejectWithValue})=>{
         try{
-            const response = await axios.post('http://localhost:5000/api/v1/auth/signup',userData,{
+            const response = await axios.post('https://othello-backend-production.up.railway.app/api/v1/auth/signup',userData,{
                   withCredentials: true
             });
             if (response.data.token) {
@@ -42,8 +42,9 @@ export const signupUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
     'auth/LoginUser', async(credentials, {rejectWithValue})=>{
+        //use http://localhost:5000 as domain
         try{
-            const response = await axios.post('http://localhost:5000/api/v1/auth/signin', credentials,{
+            const response = await axios.post('https://othello-backend-production.up.railway.app/api/v1/auth/signin', credentials,{
                 withCredentials:true
             });
             if(response.data.token){
