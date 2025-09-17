@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from '../features/auth/authSlice';
 import UserCard from "../components/UserCard";
 import WinnerPopup from "../components/WinnerPopup"; // Import the WinnerPopup component
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/SideBar";
 
 export default function Home() {
   const {isAuthenticated, user, loading} = useSelector(state =>state.auth)
