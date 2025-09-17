@@ -20,7 +20,7 @@ const directions = [
   [1, 0],
   [1, 1],
 ];
-const Grid = () => {
+const OthelloMain = () => {
   const canvasRef = useRef(null);
   const [board, setBoard] = useState(() => {
     const initial = Array(BOARD_SIZE)
@@ -239,8 +239,6 @@ const handleClick = (e) => {
   };
   return (
     <div className="othello-container">
-      <p>Current Player: <strong>{currentPlayer === 1 ? "Black" : "White"}</strong></p>
-      <p>Score - Black: {score.black} | White: {score.white}</p>
       <canvas
         ref={canvasRef}
         width={CANVAS_SIZE}
@@ -273,4 +271,4 @@ const handleClick = (e) => {
   );
 };
 
-export default Grid;
+export default OthelloMain;
