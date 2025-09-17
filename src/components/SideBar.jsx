@@ -3,7 +3,7 @@ import Button from './Button';
 import UserCard from './UserCard';
 import LoginSignup from './LoginSignup';
 import othellooo from "../assets/othellooo.png";
-import './Sidebar.css';
+import './SideBar.css';
 
 const Sidebar = ({ 
   gameState, 
