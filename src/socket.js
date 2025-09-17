@@ -5,7 +5,7 @@ let socket = null;
 
 export const initializeSocket = () => {
   if (!socket) {
-    socket = io('http://localhost:5000',{
+    socket = io('https://othello-backend-production.up.railway.app',{
         transports: ['websocket', 'polling'],
         autoConnect: true
     });
