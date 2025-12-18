@@ -5,7 +5,7 @@ let socket = null;
 
 export const initializeSocket = () => {
   if (!socket) {
-    socket = io('https://othello-backend-production.up.railway.app',{
+    socket = io('https://othello-backend.onrender.com',{
         transports: ['websocket', 'polling'],
         autoConnect: true
     });
